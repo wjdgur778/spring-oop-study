@@ -99,7 +99,9 @@ public class OrderServiceImpl implements OrderService{
 ```
 **따라서,** 이 문제를 해결하기 위해서는 누군가가 클라이언트인 ```OrderServiceImpl```에 
 ```DiscountPolicy``` 구현 객체를 "**★생성 및 주입★**" 해주어야한다. 
+
 &nbsp;
+
 ### [AppConfig를 통한 생성자 주입]
 클라이언트에서는 구현체를 직접 넣지 앟고 AppConfig를 통해 대신 "**객체를 생성하고 주입" 시킨다.** 
 이를 통해 역할과 책임을 나눈다. 이렇게 하면 기존의 클라이언트가 역할(인터페이스)에만 의존하게 하여 클라이언트 코드 변경없이
@@ -144,6 +146,8 @@ public class AppConfig {
 }
 
 ```
+&nbsp;
+
 ### [좋은 객체지향 설계의 5가지 원칙 적용]
 **SRP 단일 책임 원칙** 
 
