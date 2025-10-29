@@ -49,14 +49,14 @@ class PayController {
 // 따라서, 이렇게 구현체를 바꾸는 코드 없이(OCP를 지키려면) 별도의 조립자가 필요하다.
 // 이를 Spring이 대신 해주게 된다 ☆☆☆
 ```
-&nbsp
+&nbsp;
 
 **LSP : 리스코프 치환 법칙**
 - 프로그램의 객체는 프로그램의 정확성을 깨뜨리지 않으면서 하위 타임의 인스턴스로 바꿀 수 있어야 한다.
 - 예를 들어) 하나의 인터페이스에 "앞으로 가기"라는 기능이 있다고 한다면 하위 구현체가 "앞으로 느리게 가기"와 같이 기능을 구현해도 되지만,
 "뒤로가기" 와 같이 정의해놓은 기능을 깨뜨리면 안된다는 것이다.
 
-&nbsp
+&nbsp;
 
 **ISP : 인터페이스 분리 원칙**
 - 특정 클라이언트를 위한 인터페이스 여러 개가 범용 인터페이스 하나보다 낫다.
@@ -64,7 +64,7 @@ class PayController {
 - 사용자 클라이언트 -> 운전자 클라이언트, 정비사 클라이언트로 분리 될 수 있다.
 - 분리하면 인터페이스가 명확해지고 대체 가능성이 높아진다.
 
-&nbsp
+&nbsp;
 
 **DIP : 의존관계의 원칙**
 - 추상화에 의존해야하고, 구체화에 의존하면 안된다.
@@ -75,7 +75,7 @@ class PayController {
 
 ---
 
-
+&nbsp;
 ### [OCP와 DIP를 위반하는 코드에서 알아보는 Spring의 DI]
 #### OCP와 DIP를 위반하는 코드
 아래의 코드는 클라이언트 코드에서 구현체에 의존하고(DIP 위반)
@@ -87,6 +87,7 @@ public class OrderServiceImpl implements OrderService{
     private final DiscountPolicy discountPolicy = new RateDiscountPolicy();
 }
 ```
+&nbsp;
 #### OCP와 DIP를 준수하기 위한 코드
 OCP와 DIP를 준수하기 위해 인터페이스만을 의존하게 만들었다.
 이렇게 하면  OCP와 DIP를 준수하지만 실제로 실행하면 NPE가 발생할 것이다.
