@@ -213,6 +213,9 @@ AppConfig가 가지게 된다.
 이라 적힌 메서드를 모두 호출해서 반환된 객체를 스프링 컨테이너에 등록한다. 이렇게 스프링 컨테이너에 등록된 객체를 스프링 빈이라고 한다.
 * 이전에는 AppConfig에서 직접 찾아서 사용해야했지만, 스프링 컨테이너를 사용하면 ```applicationContext.getBean()```을 통해서 객체를 찾을 수 있다.
   * **이렇게 수행하면 이전 코드보다 더 복잡해지는것 같은데 어떤 장점이 있을까?**
+### **[스프링 빈 상속관계]**
+* 부모 타입으로 조회하면, 자식 타입도 함께 조회된다.★
+* 그래서 결국 "Object"타입으로 조회하면 모든 빈이 조회된다.
 
 &nbsp;
 * ```ApplicationContext```는 ```BeanFactory```를 상속받아 빈을 관리하고 검색하는 모든 기능을 제공한다. 
@@ -234,9 +237,7 @@ AppConfig가 가지게 된다.
 
 &nbsp;
 
-### **[스프링 빈 상속관계]**
-* 부모 타입으로 조회하면, 자식 타입도 함께 조회된다.★
-* 그래서 결국 "Object"타입으로 조회하면 모든 빈이 조회된다.
+
 ---
 &nbsp;
 
@@ -256,7 +257,6 @@ AppConfig가 가지게 된다.
 
         //2. 조회 : 호출할때마다 객체 생성
         MemberService memberService1 = appConfig.memberService();
-
         Assertions.assertThat(memberService).isNotSameAs(memberService1);
     }
 ```
