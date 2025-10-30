@@ -204,23 +204,145 @@ AppConfig가 가지게 된다.
 * 객체 인스턴스를 생성하고, 그 참조값을 전달해서 연결된다.
 * 이를 통해 클라이언트 코드가 변경되지 않고, 클라이언트가 호출하는 대상의 구현체를 변경할 수 있다.
 
-### [JAVA to Spring]
-#### ★스프링 컨테이너★
+### [스프링 컨테이너]
+
 * ```ApplicationContext```를 스프링 컨테이너라고 부른다.
 * 기존에는 개발자가 AppConfig와 같은 설정 클래스를 통해 객체를 생성하고 주입했지만, Spring으로 넘어오면서 이를
   ```ApplicationContext```에 위임한다.
 * 스프링 컨테이너는 ```@Configuration```이 붙은 클래스를 설정 정보로 사용한다. 여기서 ```@Bean```
 이라 적힌 메서드를 모두 호출해서 반환된 객체를 스프링 컨테이너에 등록한다. 이렇게 스프링 컨테이너에 등록된 객체를 스프링 빈이라고 한다.
 * 이전에는 AppConfig에서 직접 찾아서 사용해야했지만, 스프링 컨테이너를 사용하면 ```applicationContext.getBean()```을 통해서 객체를 찾을 수 있다.
+  * **이렇게 수행하면 이전 코드보다 더 복잡해지는것 같은데 어떤 장점이 있을까?**
 
+&nbsp;
+* ```ApplicationContext```는 ```BeanFactory```를 상속받아 빈을 관리하고 검색하는 모든 기능을 제공한다. 
+* ```ApplicationContext```는 빈 관리기능 + 편리한 부가기능
+  * **메시지 소스를 활용한 국제화 기능**
+    * 한국에서 들어오면 한국어, 영어권에서 들어오면 영어로 출력
+  * **환경변수**
+    * 로컬, 개발, 운영을 구분해서 처리
+  * **애플리케이션 이벤트**
+    * 이벤트 발행 및 구독하는 모델을 편리하게 지원
+  * **편리한 리소스 조회**
+    * 파일, 클래스패스, 외부등에서 리소스를 편리하게 조회
 
-* **이렇게 수행하면 이전 코드보다 더 복잡해지는것 같은데 어떤 장점이 있을까?**
+**사용 방법**
+1. 어노테이션 기반 자바 코드로 사용
+   1. ```new AnnotaionConfigApplicationContext(AppConfig.class)```를 통해 사용
+2. XML 설정 사용
+---
+
+&nbsp;
 
 ### **[스프링 빈 상속관계]**
 * 부모 타입으로 조회하면, 자식 타입도 함께 조회된다.★
 * 그래서 결국 "Object"타입으로 조회하면 모든 빈이 조회된다.
+---
+&nbsp;
+
+### [웹 어플리케이션과 싱글톤]
+
+웹 어플리케이션은 보통 여러 고객이 동시에 요청을 한다.
+
+이때 고객은 객체를 요청을 하게되고, 이 요청마다 새로운 인스턴스를 반환하게 된다.
+그렇다는건 요청이 올때마다 계속 인스턴스를 만든다는 것이다.
+```java
+    @Test
+    @DisplayName("스프링 없는 순수 DI컨테이너")
+    void pureContainer(){
+        AppConfig appConfig = new AppConfig();
+        //1. 조회 : 호출할때마다 객체 생성
+        MemberService memberService = appConfig.memberService();
+
+        //2. 조회 : 호출할때마다 객체 생성
+        MemberService memberService1 = appConfig.memberService();
+
+        Assertions.assertThat(memberService).isNotSameAs(memberService1);
+    }
+```
+위와 같이 테스트를 진행하면 ```memberService```와 ```memberService1```이 서로 다른 인스턴스가 할당됨을 알 수 있다.
+
+* 기존에 직접 작성한 ```AppConfig```는 요청을 할 때 마다 객체를 새로 생성한다.
+* 고객 트래픽이 초당 100개라면 초당 100개의 인스턴스가 생성되고 소멸될 것이다. -> 메모리 낭비가 심하다.
+* 따라서 해당 객체에 대한 인스턴스는 1개만 생성되게하고, 공유하도록 설계한다 -> 싱글톤 패턴
+
+### [싱글톤 패턴]
+
+* 클래스의 인스턴스가 1개만 생성되도록 보장하는 패턴이다.
+* 객체 인스턴스를 2개이상 생성하지 못하도록 막아야한다.
+  * private 생성자를 통해 new 키워드를 막고
+  * public static메소드를 통해 외부에서 인스턴스를 요청해서 가져오게 만든다.
+
+#### 문제점
+* 코드가 길어진다.
+* 클라이언트가 구체 클래스에 의존해야한다.(ex. ```구체클래스.getInstance()```  ) ->  DIP 위반하게된다.
+* 클라이언트가 구체 클래스에 의존하기때문에 OCP를 위한반 할 수 있다. 
+* 내부 속성을 변경하거나 초기화 하기 어렵다.
+* private 생성자로 자식 클래스를 만들기 어렵다.
+* 결론적으로 유연성이 떨어진다.
+
+★ 스프링은 이 문제점들을 해결하는 싱글톤 패턴을 사용!!!
+
+### [싱글톤 컨테이너]
+앞서 언급되었던 ApplicationConext(스프링 컨테이너)가 싱글톤의 본래 문제점을 해결한다.
+
+* 객체를 "Bean"으로 관리함에 따라 싱글턴 패턴의 모든 단점을 해결하면서 객체를 싱글톤으로 유지
+  * 싱글톤을 위한 지저분한 코드가 들어가지 않다도 되고
+  * DIP, OCP, 테스트, private 생성자로부터 자유롭다.
+
+이 덕분에 고객의 요청이 올 때 마다 객체를 생성하는 것이 아니라, 이미 만들어진 객체를 공유해서 효율적으로 재사용할 수 있다.
+
+★ 참고 ★
+스프링의 기본 빈 등록 방식은 싱글톤이지만, 요청할 때 마다 새로운 객체를 생성해서 반환하는 기능도 제공한다.
+
+### [싱글톤 패턴의 주의점]
+문제점을 해결한 싱글톤은 객체를 재사용하면서 장점만을 가질 것 같지만 주의해야할 사항들이 있다.
+
+객체 인스턴스 하나만 생성해서 공유하는 방식인 싱글톤은 클라이언트가 하나의 같은 인스턴스를 공유하기 때문에 싱글톤 객체는 stateful하게 설계하면 안된다.
+
+* ★ 무상태로 설계해야한다! ★
+  * 특정 클라이언트에 의존적인 필드가 있으면 안된다.
+  * 특정 클라이언트가 값을 변경할 수 있는 필드가 있으면 안된다.
+  * 가급적 읽기만 가능해야한다.
+  * 필드 대신에 자바에서 공유되지 않는, 지역변수, 파라미터, ThreadLocal 등을 사용해야한다.
+* ★ 스프링 빈의 필드에 공유 값을 설정하면 큰 장애가 발생할 수 있다.★
+
+**장애 발생 예시**
+```java
+class StatefulServiceTest {
+    @Test
+    void statefuleServiceSingleton(){
+        ApplicationContext ac = new AnnotationConfigApplicationContext(TestConfig.class);
+
+        StatefulService statefulService1 = ac.getBean(StatefulService.class);
+        StatefulService statefulService2 = ac.getBean(StatefulService.class);
+        //Thread A : 사용자 a 10000원 주문
+        statefulService1.order("userA",10000);
+        //Thread B : 사용자 b 20000원 주문
+        statefulService1.order("userB",20000);
+
+        //기댓값은 10000원이지만, 20000원이 나온다..
+        int price = statefulService1.getPrice();
+        System.out.println(price);
+    }
+
+    static class TestConfig{
+        @Bean
+        public StatefulService statefulService(){
+            return new StatefulService();
+        }
+    }
+}
+```
+* 여러 쓰래드가```statefuleSerice```을 호출할 경우 스프링은 이를 빈으로 관리하여 같은 인스턴스를 반환한다.
+* 이때 ```price```필드는 공유되는 필드인데, 특정 클라이언트가 값을 변경한다.
+* 사용자 A의 주문금액은 10000원이지만 20000원이라는 조회 값이 나오게된다.
+* 실무에서 종종 나오는 문제로.. 
+* ★ 공유 필드는 정말 조심해야한다! 스프링 빈은 항상 stateless로 설계하자.
 
 
+&nbsp;
+&nbsp;
 
 
 **<참고 자료>**
