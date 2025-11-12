@@ -409,12 +409,110 @@ class StatefulServiceTest {
 
 &nbsp;
 
-### []
+### [조회 대상 빈이 2개 이상일때는??]
+
+예를 들어 ```DisCountPolicy```의 하위타입이 2개 이상(```FixDisCountPolicy```,```RateDisCountPolicy```)이라면
+자동의존관계 주입 시에 ```NoUniqueBeanDefinitionException``` 오류가 발생한다.
 
 
+따라서 스프링이 이를 구분할 수 있게 도와줘야한다.
+
+#### 해결방법
+1. ```@Autowired``` 필드 명 매칭
+```java
+<<기존코드>>
+@Autowired
+private DiscountPolicy discountPolicy 
+```
+
+```java
+<<필드 명을 빈 이름으로 변경>>
+@Autowired
+private DiscountPolicy fixDiscountPolicy 
+```
+이렇게 하면 빈 이름이 ```fixDiscountPolicy```인 구현체가 ```DiscountPolicy```에 정상적으로 주입된다.
+
+2. ```@Qualifier``` 사용
+
+구분자의 역할을 하게 된다.
+
+```java
+<<구현체 클래스>>
+@Component
+@Qualifier("fixDiscountPolicy")
+public class FixDiscountPolicy implements DiscounPolicy{
+    
+}
+...
+```
+
+```java
+<<생성자 자동 주입 예시>>
+public OrderServiceImpl(MemberRepository memberRepository,
+                        @Qualifier("fixDiscountPolicy")DiscountPolicy discountPolicy){
+        
+    
+}
+```
+
+3. ```@Primary``` 사용
+
+이는 우선순위를 지정함으로써 어떤 빈이 주입되어야 하는지 구분해주는 역할을 한다.
+의존관계 주입시에 여러 빈이 매칭되면 ```@Primary```가 우선권을 가지게 된다.
+
+```java
+<<RateDiscountPolicy가 우선권을 가진다.>>
+
+@Component
+@Primary
+public class RateDiscountPolicy implements DiscountPolicy{
+    
+}
+
+@Component
+public class FixDiscountPolicy implements DiscountPolicy{
+
+}
+```
+언제 많이쓰나?
+
+바로,
+
+"메인 데이터베이스가 있고 보조 데이터베이스가 있다고 했을때, 메인 데이터베이스의 커넥션을 가져오고자 할때" 처럼 
+코드에서 자주 사용하는 구현체에 붙임으로써 코드를 보다 깔끔하게 구현할 수 있다.
+
+####[참고할 점]
+참고할 점은 ```@Primary```보다 ```@Qualifier``` 가 우선순위를 가진다는 점이다!!
 
 
 &nbsp;
+
+### [어노테이션 직접 만들기]
+
+의존관계 주입 시에 어노테이션을 직접 만들어서 주입할 수도 있다.
+```@Qualifier("mainmDiscountPolicy")```와 같이 오탈자가 있어도 컴파일 오류가 나지 않는데 이를 방지하기 위해서
+어노테이션을 직접 만들어 사용할 수 있다.
+
+```java
+// Qualifier에 달린 어노테이션을 끌어오고 
+// @Qualifier("mainDiscountPolicy")와 같이 직접 지정해주면 @MainDiscountPolicy를 사용할 수 있다.
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.TYPE, ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
+@Qualifier("mainDiscountPolicy") // ★★ 중요 ★★
+public @interface MainDiscountPolicy {
+
+}
+
+// 사용시에 @MainDiscountPolicy를 붙이면 된다. 오탈자가 생기면 컴파일 오류가 날것이다.
+public OrderServiceImpl(MemberRepository memberRepository,@MainDiscountPolicy DiscountPolicy discountPolicy) {
+  this.memberRepository = memberRepository;
+  this.discountPolicy = discountPolicy;
+}
+```
+
+
 &nbsp;
 
 
