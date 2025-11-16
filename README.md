@@ -515,6 +515,53 @@ public OrderServiceImpl(MemberRepository memberRepository,@MainDiscountPolicy Di
 
 &nbsp;
 
+### [빈의 생명주기]
+빈의 생명 주기는 다음과 같다.
+
+1. 스프링 컨테이너가 먼저 생성된다.
+2. 스프링 컨테이너가 컴포넌트스캔을 통해 빈을 등록한다.
+3. 빈이 생성 되고 의존관계 주입 후 초기화 콜백이 동작
+4. 어플리케이션에서 빈이 동작
+5. 빈이 소멸 전에 소멸콜백이 호출되고 어플리케이션이 종료된다.
+
+#### [콜백을 다루는 2가지 방법(3가지가 있긴함)]
+1. ```@Bean``` 의 속성을 활용한 초기화 콜백 및 소멸 콜백. 
+```java
+  // 해당 클래스 (NetworkClient) 안에 메소드를 만들고, 그 이름을 
+  // initMethod 과 destoryMethod 에 적으면 된다.
+  // 예를 들어 init과 close는 NetworkClient 안의 메서드인 것이다.
+  @Bean(initMethod = "init", destoryMethod = "close")
+  public NetworkClient networkClient(){
+        NetworkClient networkClient = new NetworkClient();
+        networkClient.setUrl("http~~");
+        return networkClient;
+  }
+```
+2. ```@PostConstruct``` , ```@PreConstruct```를 통한 콜백 메서드
+```java 
+  public class NetworkClient{
+    private String url;
+    
+    public void setUrl(String url){
+      this.url = url;
+    }
+    @PostContruct
+    public void init(){
+      // init 로직
+    }
+    
+    @PreContruct
+    public void close(){
+      // close 로직
+    }
+  } 
+```
+**참고사항** : 외부 라이브러리에는 적용하지 못한다는 단점이 있기 때문에 외부 라이브러리를 초기화 및 종료해야한다면 @Bean 기능(1번)
+을 사용하자~!
+
+&nbsp;
+
+
 
 **<참고 자료>**
 * 스프링 핵심 원리 - 기본편 (김영한, 인프런)
