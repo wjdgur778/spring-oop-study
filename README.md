@@ -646,12 +646,37 @@ public class ClientBean{
 * 문제는 서로 다른 클라이언트 2가 동일하게 ``clientBean.logic()``를 호출하면 ``private int count``필드가 ``2``가 될것이다.
 * 요청할때 새로운 빈을 전달한다고 이해했던 ``prototypeBean`` 이지만 동일한 인스턴스를 사용하게 되는것이다.
 
-> 우리가 프로토타입 빈을 사용할 때의 의도는 매 요청마다 새로운 빈을 반환 받아서 사용하고 싶은 것이다. 하지만 싱글톤 빈 안에서 주입받은 프로토타입 빈은 처음 주입받을때 새로 생성되고 이후에는 이미 주입받은 빈을 사용하기 때문에 개발자의 의도와 다르게 사용될 수도 있을 것이다.
+> 우리가 프로토타입 빈을 사용할 때의 의도는 매 요청마다 새로운 빈을 반환 받아서 사용하고 싶은 것이다. 
+> `하지만 싱글톤 빈 안에서 주입받은 프로토타입 빈은 처음 주입받을때 새로 생성되고 이후에는 이미 주입받은 빈을 사용하기 때문에 개발자의 의도와 다르게 사용될 수도 있을 것이다.`
 
 
 &nbsp;
 
-### [싱글톤 스코프와 프로토타입 스코프를 함께 사용하려면?]
+**[싱글톤 스코프와 프로토타입 스코프를 함께 사용하려면?]**
+
+싱글톤 스코프와 프로토타입 스코프를 함께 사용 시 ```Provider```로 문제를 해결할 수 있다.
+
+* **ObjectFactory, ObjectProvider**
+  * 지정한 빈을 컨테이너에서 대신 찾아주는 Dependency Lookup(DL)을 제공하는 것이 ```ObjectProvider```이다. 원래 ```ObjectFactory```가 있었지만 여기에 편의 기능을 제공해서 ```ObjectProvider```가 만들어졌다.
+
+**<예시코드>**
+```java
+@Autowired
+private ObjectProvider<ProtoTypeBean> protoTypeBeanProvider;
+
+public int logic(){
+        ProtoTypeBean protoTypeBean = protoTypeBeanProvider.getObject();
+        protoTypeBean.addCount();
+        int count = protoTypeBean.getCount();
+        return count;
+        }
+```
+* 위 코드를 보면 ```protoTypeBeanProvider.getObject()```를 통해서 항상 새로운 프로토타입 빈이 생성되는것을 알 수 있다. 
+* ```ObjectProvider```의 ```getObject()```를 호출하면 내부에서 스프링 컨테이너를 통해 해당 빈을 찾아서 반환한다. (**DL**기능)
+
+**[정리]**
+* 프로토타입 빈은 실무에서 사용하는 일은 드물다!!
+
 
 
 
