@@ -677,6 +677,30 @@ public int logic(){
 **[정리]**
 * 프로토타입 빈은 실무에서 사용하는 일은 드물다!!
 
+### [reqeust 스코프]
+
+동시에 여러 HTTP요청이 오면 정확히 어떤 요청이 남긴 로그인지 구분하기 어렵다.
+
+**이럴때 사용하기 좋은 것이 바로 request스코프이다.**
+
+다음과 같은 로그를 남기는 기능을 만든다면
+```text
+[d06b992f..] request scope bean create
+[d06b992f..] [http://localhost:8080/log-demo] contorller test
+[d06b992f..] [http://localhost:8080/log-demo] service id  = testId
+[d06b992f..] request scope bean close
+```
+* 기대하는 포맷 [UUID][requestURL][message]
+* UUID를 사용해서 HTTP 구분
+* requestURL 정보도 추가
+
+코드를 모두 작성해보면 알다시피 ```MyLogger```를 컨트롤러에서 주입하려고 할때 ```MyLogger```는  request 스코프이기 때문에 에러가 날것이다.
+
+이를 이전에 수행했던 ```ObjectProvider```를 통해 DL함으로써 해결할 수 있다.
+
+
+
+
 
 
 
